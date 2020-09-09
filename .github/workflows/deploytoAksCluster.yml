@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: akswcr.azurecr.io
+        username: ${{ secrets.acr_akswcr_username }}
+        password: ${{ secrets.acr_akswcr_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/" -f  "Dockerfile" -t akswcr.azurecr.io/akspoccluster:${{ github.sha }}
+        docker push akswcr.azurecr.io/akspoccluster:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_akspoccluster_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep akspoccluster22cf | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace akspoccluster22cf`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: akspoccluster22cf
+        container-registry-url: akswcr.azurecr.io
+        container-registry-username: ${{ secrets.acr_akswcr_username }}
+        container-registry-password: ${{ secrets.acr_akswcr_password }}
+        secret-name: akspocclustedockerauth
+       
+    - uses: azure/k8s-deploy@v1
+      with:
+        namespace: akspoccluster22cf
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          akswcr.azurecr.io/akspoccluster:${{ github.sha }}
+        imagepullsecrets: |
+          akspocclustedockerauth
