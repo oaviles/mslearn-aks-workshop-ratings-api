@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "akspoccluster-c1ae"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "akspoccluster-c1ae"
+  template:
+    metadata:
+      labels:
+        app: "akspoccluster-c1ae"
+    spec:
+      containers:
+        - name: "akspoccluster-c1ae"
+          image: "akswcr.azurecr.io/akspoccluster"
+          ports:
+          - containerPort: 3000
