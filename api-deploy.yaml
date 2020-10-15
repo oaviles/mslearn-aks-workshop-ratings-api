@@ -13,6 +13,6 @@ spec:
     spec:
       containers:
         - name: aro-rating-api
-          image: oaviles/aro-rating-api:v1
+          image: oaviles/rating-api-gbm:v1
           ports:
             - containerPort: 8080
