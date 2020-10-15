@@ -1,0 +1,18 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: aro-rating-api
+spec:
+  selector:
+    app: aro-rating-api
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: aro-rating-api
+    spec:
+      containers:
+        - name: aro-rating-api
+          image: oaviles/aro-rating-api:v1
+          ports:
+            - containerPort: 8080
